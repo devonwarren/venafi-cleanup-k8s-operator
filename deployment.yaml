@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: venafi-cleanup-operator
+  namespace: cert-manager
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      application: venafi-cleanup-operator
+  template:
+    metadata:
+      labels:
+        application: venafi-cleanup-operator
+    spec:
+      containers:
+      - name: venafi-cleanup-operator
+        image: devonwarren/venafi-cleanup-operator
+        resources:
+          limits:
+            cpu: 1
+            memory: 800Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        env:
+        - name: VENAFI_DNS_DOMAIN
+          value: "venafi.example.com"
+        - name: VENAFI_AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: venafi-issuer
+              key: access-token
+        - name: VENAFI_CA_CERT
+          value: "/app/ssl/tls.crt"
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+        securityContext:
+          capabilities:
+            drop: ["KILL", "MKNOD", "SYS_CHROOT"]
+        volumeMounts:
+        - name: certificate
+          mountPath: /app/ssl
+          readOnly: true
+      serviceAccountName: venafi-cleanup-operator-admin
+      volumes:
+      - name: certificate
+        secret:
+          secretName: venafi-cert
+      securityContext:
+          runAsUser: 1000
+          runAsGroup: 3000
+          fsGroup: 2000

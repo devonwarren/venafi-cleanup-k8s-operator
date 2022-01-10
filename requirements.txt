@@ -1,0 +1,4 @@
+kopf==1.35.3
+pylint==2.12.2
+requests==2.26.0
+certifi==2021.10.8
