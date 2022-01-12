@@ -53,7 +53,7 @@ def delete_cert(common_name):
     guid = urllib.parse.quote(cert_info['Certificates'][0].get('Guid', '').strip('{}'))
 
     # call delete api call
-    delete_req = requests.get(
+    delete_req = requests.delete(
         f"https://{venafi_domain}/vedsdk/certificates/{guid}",
         headers=headers,
         verify='/etc/ssl/certs/ca-certificates.crt'
